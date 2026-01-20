@@ -17,7 +17,7 @@ def is_noun(sense):
     return True
 
 
-def is_common(entry):
+def is_common_word(entry):
     k_ele = entry.find("k_ele")
     if k_ele is None:
         return False
@@ -79,7 +79,8 @@ with sql.connect("dict.db") as db:
         CREATE TABLE words (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             kanji VARCHAR(5) NOT NULL,
-            reading VARCHAR(5) NOT NULL
+            reading VARCHAR(5) NOT NULL,
+            is_common BOOLEAN NOT NULL
         )
     """)
     cur.execute("""
@@ -99,8 +100,7 @@ with sql.connect("dict.db") as db:
         if not is_noun(sense):
             continue
 
-        if not is_common(entry):
-            continue
+        is_common = is_common_word(entry)
 
         word = get_word_if_len(entry, 5)
         if word is None:
@@ -111,8 +111,8 @@ with sql.connect("dict.db") as db:
             continue
 
         res = cur.execute(
-            "INSERT INTO words (kanji, reading) VALUES (?, ?)",
-            [word.kanji, word.reading]
+            "INSERT INTO words (kanji, reading, is_common) VALUES (?, ?, ?)",
+            [word.kanji, word.reading, is_common]
         )
         word_id = cur.lastrowid
 
@@ -122,5 +122,8 @@ with sql.connect("dict.db") as db:
                 [word_id, glossary]
             )
 
-    res = cur.execute("SELECT COUNT(id) FROM words")
-    print("Database created. {} entries".format(res.fetchall()[0][0]))
+    total_count = cur.execute("SELECT COUNT(id) FROM words").fetchall()[0][0]
+    common_count = cur.execute(
+        "SELECT COUNT(id) FROM words WHERE is_common = TRUE").fetchall()[0][0]
+    print("Database created. {} entries. {} entries are common.".format(
+        total_count, common_count))
