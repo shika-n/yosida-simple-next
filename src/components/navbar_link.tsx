@@ -10,7 +10,7 @@ export default function NavLink({
 	return (
 		<a
 			href={to}
-			className="h-full px-4 py-3 hover:bg-(--primary-2) active:bg-(--primary-4)"
+			className="h-full px-4 py-3 transition-all hover:bg-(--primary-2) active:bg-(--primary-4)"
 		>
 			{children}
 		</a>

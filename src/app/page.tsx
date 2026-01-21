@@ -11,12 +11,12 @@ async function fetchData() {
 		const json = await res.json();
 		return json;
 	} catch (e) {
-		return null
+		return null;
 	}
 }
 
 export default function Home() {
-	const dataPromise = fetchData().catch((reason) => reason);
+	const dataPromise = fetchData();
 
 	return (
 		<GuessProvider>
