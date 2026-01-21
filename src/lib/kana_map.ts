@@ -1,4 +1,6 @@
 export const kanaMap = new Map([
+	["-", "ー"],
+
 	["a", "あ"],
 	["i", "い"],
 	["u", "う"],
