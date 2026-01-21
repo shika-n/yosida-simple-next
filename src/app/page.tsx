@@ -1,5 +1,6 @@
 import TileBoard, { TileBoardFallback } from "@/components/tile_board";
-import { Suspense } from "react";
+import GuessProvider, { GuessContext } from "@/lib/contexts/guess_context";
+import { Suspense, useContext } from "react";
 
 async function fetchData() {
 	try {
@@ -18,10 +19,10 @@ export default function Home() {
 	const dataPromise = fetchData().catch((reason) => reason);
 
 	return (
-		<>
+		<GuessProvider>
 			<Suspense fallback={<TileBoardFallback />}>
 				<TileBoard dataPromise={dataPromise} />
 			</Suspense>
-		</>
+		</GuessProvider>
 	);
 }
