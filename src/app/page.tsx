@@ -1,10 +1,10 @@
 import TileBoard from "@/components/tile_board";
-import GuessProvider from "@/lib/contexts/guess_context";
 
 export default function Home() {
 	return (
-		<GuessProvider>
+		<>
+			<h1 className="text-3xl font-bold">Daily</h1>
 			<TileBoard />
-		</GuessProvider>
+		</>
 	);
 }

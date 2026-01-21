@@ -248,7 +248,7 @@ export default function TileBoard() {
 	}, [guessContext?.state.requestSubmit]);
 
 	return (
-		<MainContainer>
+		<>
 			<div
 				className="m-auto grid w-fit gap-2"
 				style={{
@@ -270,7 +270,7 @@ export default function TileBoard() {
 				})}
 			</div>
 			<Button>
-				Request Meaning ({guessContext?.state.revealedGlossaryCount}/
+				Request Meaning ({guessContext?.state.revealedGlossaryCount}/?)
 			</Button>
 			Glossary:
 			<ul>
@@ -278,7 +278,7 @@ export default function TileBoard() {
 					return <li key={glossary.id}>{glossary.meaning}</li>;
 				})}
 			</ul>
-		</MainContainer>
+		</>
 	);
 }
 
@@ -286,7 +286,7 @@ export function TileBoardFallback() {
 	const tiles = Array.from({ length: BOARD_WIDTH * 6 }, () => 0);
 
 	return (
-		<div className="m-auto flex max-w-3xl flex-col items-center gap-4 rounded-lg bg-(--primary-4) p-4">
+		<>
 			<div
 				className="m-auto grid w-fit gap-2"
 				style={{
@@ -304,6 +304,6 @@ export function TileBoardFallback() {
 			</button>
 			Glossary:
 			<span></span>
-		</div>
+		</>
 	);
 }

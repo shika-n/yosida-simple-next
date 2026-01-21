@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
+import GuessProvider from "@/lib/contexts/guess_context";
+import MainContainer from "@/components/main_container";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -29,7 +31,11 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<Navbar />
-				<div className="p-4">{children}</div>
+				<div className="p-4">
+					<MainContainer>
+						<GuessProvider>{children}</GuessProvider>
+					</MainContainer>
+				</div>
 			</body>
 		</html>
 	);
