@@ -2,16 +2,20 @@ import TileBoard, { TileBoardFallback } from "@/components/tile_board";
 import { Suspense } from "react";
 
 async function fetchData() {
-	const res = await fetch("http://localhost:3000/get_random_word");
-	if (res.status !== 200) {
-		Promise.reject(res.body);
+	try {
+		const res = await fetch("http://localhost:3000/word/random");
+		if (res.status !== 200) {
+			return null;
+		}
+		const json = await res.json();
+		return json;
+	} catch (e) {
+		return null
 	}
-	const json = await res.json();
-	return json;
 }
 
 export default function Home() {
-	const dataPromise = fetchData();
+	const dataPromise = fetchData().catch((reason) => reason);
 
 	return (
 		<>

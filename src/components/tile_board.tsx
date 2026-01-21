@@ -1,14 +1,19 @@
 "use client";
 import { use } from "react";
 import CharTile from "./char_tile";
-import { WordData } from "@/app/get_random_word/route";
+import { Word } from "@/lib/models/words";
+import { Glossary } from "@/lib/models/glossary";
 
 export default function TileBoard({
 	dataPromise,
 }: {
 	dataPromise: Promise<any>;
 }) {
-	const data: WordData = use(dataPromise);
+	const data: { word: Word, glossaries: Glossary[] } = use(dataPromise);
+
+	if (!data) {
+		return <>No word</>
+	}
 
 	const tiles = [0, 1, 2, 3, 4];
 	tiles.push(...[0, 1, 2, 3, 4]);
