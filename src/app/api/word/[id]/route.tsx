@@ -1,5 +1,6 @@
 import { getGlossariesOf } from "@/lib/models/glossary";
 import { getWordById } from "@/lib/models/words";
+import { NextResponse } from "next/server";
 
 export async function GET(
 	_: Request,
@@ -10,10 +11,13 @@ export async function GET(
 	const word = getWordById(id);
 
 	if (!word) {
-		return Response.json({ message: "Word not found" }, { status: 404 });
+		return NextResponse.json(
+			{ message: "Word not found" },
+			{ status: 404 },
+		);
 	}
 
 	const glossaries = getGlossariesOf(word);
 
-	return Response.json({ word, glossaries });
+	return NextResponse.json({ word, glossaries });
 }

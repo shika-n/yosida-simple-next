@@ -2,9 +2,9 @@ import { getCurrentWord } from "@/lib/guess_data";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-	const json = await request.json();
+	const body = await request.json();
 
-	const guess = json.word;
+	const guess = body.word;
 	const currentWord = getCurrentWord();
 
 	if (!currentWord) {
