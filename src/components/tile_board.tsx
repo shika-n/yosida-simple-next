@@ -189,17 +189,7 @@ async function handleSubmission(
 	});
 }
 
-export default function TileBoard({
-	dataPromise,
-}: {
-	dataPromise: Promise<any>;
-}) {
-	const data: { word: Word; glossaries: Glossary[] } = use(dataPromise);
-
-	if (!data) {
-		return <>No word</>;
-	}
-
+export default function TileBoard() {
 	const guessContext = useContext(GuessContext);
 
 	useEffect(() => {
@@ -281,7 +271,6 @@ export default function TileBoard({
 			</div>
 			<Button>
 				Request Meaning ({guessContext?.state.revealedGlossaryCount}/
-				{data.glossaries.length})
 			</Button>
 			Glossary:
 			<ul>
