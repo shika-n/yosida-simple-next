@@ -4,15 +4,28 @@ import xml.etree.ElementTree as et
 import sqlite3 as sql
 
 
+acceptable_pos = [
+    "adjective (keiyoushi)",
+    "adjective (keiyoushi) - yoi/ii class",
+    "adjectival nouns or quasi-adjectives (keiyodoshi)",
+    "nouns which may take the genitive case particle 'no'",
+    "pre-noun adjectival (rentaishi)",
+    "noun (common) (futsuumeishi)",
+]
+
+
 class Word:
     kanji = None
     reading = None
 
 
-def is_noun(sense):
-    pos = sense.find("pos")
-    if pos is None or not pos.text.endswith("(futsuumeishi)"):
+def is_pos_acceptable(sense):
+    pos = sense.findall("pos")
+    if len(pos) == 0:
         return False
+
+    for p in pos:
+        return p.text in acceptable_pos
 
     return True
 
@@ -93,11 +106,17 @@ with sql.connect("dict.db") as db:
 
     root = xml_tree.getroot()
     for entry in root:
-        sense = entry.find("sense")
-        if sense is None:
+        senses = entry.findall("sense")
+        if len(senses) == 0:
             continue
 
-        if not is_noun(sense):
+        sense = None
+        for s in senses:
+            if not is_pos_acceptable(s):
+                continue
+            sense = s
+
+        if sense is None:
             continue
 
         is_common = is_common_word(entry)
