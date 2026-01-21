@@ -4,7 +4,7 @@ import { Suspense, useContext } from "react";
 
 async function fetchData() {
 	try {
-		const res = await fetch("http://localhost:3000/word/random");
+		const res = await fetch("http://localhost:3000/api/word/random");
 		if (res.status !== 200) {
 			return null;
 		}

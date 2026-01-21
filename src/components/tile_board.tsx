@@ -152,7 +152,7 @@ async function handleSubmission(
 	guessContext: ProviderPair<GuessData>,
 	word: string,
 ) {
-	const res = await fetch("http://localhost:3000/guess", {
+	const res = await fetch("http://localhost:3000/api/guess", {
 		method: "POST",
 		body: JSON.stringify({
 			word,
