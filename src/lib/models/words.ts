@@ -14,12 +14,19 @@ export function getWordById(id: number): Word | undefined {
 		.get({ id });
 }
 
-export function getRandomWord(): Word | undefined {
+export function getRandomWord(isCommon?: boolean): Word | undefined {
 	const db = getDatabase();
+
+	let whereCluse = "";
+
+	if (isCommon) {
+		whereCluse = " WHERE is_common = TRUE";
+	}
+
 	return db
 		.prepare<
 			unknown[],
 			Word
-		>("SELECT * FROM words ORDER BY RANDOM() LIMIT 1")
+		>("SELECT * FROM words " + whereCluse + " ORDER BY RANDOM() LIMIT 1")
 		.get();
 }

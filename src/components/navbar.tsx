@@ -1,4 +1,4 @@
-import NavLink from "./navbar_link";
+import NavLink from "./clickables/navbar_link";
 
 export default function Navbar() {
 	return (
