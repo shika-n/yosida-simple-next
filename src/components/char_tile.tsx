@@ -19,11 +19,11 @@ export default function CharTile({
 
 	return (
 		<span
-			className={
-				"flex size-16 items-center justify-center rounded-lg text-4xl font-bold select-none " +
-				className +
-				color
-			}
+			className={[
+				"flex size-16 items-center justify-center rounded-lg text-4xl font-bold select-none",
+				className,
+				color,
+			].join(" ")}
 		>
 			{tile?.text}
 		</span>
