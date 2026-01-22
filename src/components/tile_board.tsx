@@ -155,7 +155,7 @@ async function handleSubmission(
 	const res = await fetch("http://localhost:3000/api/guess", {
 		method: "POST",
 		body: JSON.stringify({
-			word,
+			guess: word,
 		}),
 	});
 	if (res.status !== 200) {
@@ -164,7 +164,7 @@ async function handleSubmission(
 
 	const json = await res.json();
 
-	const guessResult = json.message;
+	const guessResult = json.result;
 
 	guessContext.setState((prev) => {
 		const newState = {

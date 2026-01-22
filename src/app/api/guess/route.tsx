@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
 	const body = await request.json();
 
-	const guess = body.word;
+	const guess = body.guess;
 	const currentWord = getCurrentWord();
 
 	if (!currentWord) {
@@ -25,5 +25,5 @@ export async function POST(request: NextRequest) {
 		}
 	}
 
-	return NextResponse.json({ message: result });
+	return NextResponse.json({ result: result });
 }
