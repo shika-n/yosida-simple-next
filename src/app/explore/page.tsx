@@ -31,7 +31,11 @@ export default function ExplorePage() {
 	const [result, setResult] = useState<Word[]>([]);
 
 	useEffect(() => {
-		fetchData(setResult, searchValue);
+		const timeoutId = setTimeout(
+			() => fetchData(setResult, searchValue),
+			500,
+		);
+		return () => clearTimeout(timeoutId);
 	}, [searchValue]);
 
 	return (
