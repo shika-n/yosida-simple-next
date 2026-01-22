@@ -54,13 +54,12 @@ export default function ExplorePage() {
 					<span className="border-r-2">Reading</span>
 					<span>Is Common</span>
 				</div>
-				{result.map((val, i) => {
+				{result.map((word, i) => {
 					return (
 						<ExploreEntry
-							key={i}
-							word={val}
+							key={word.id + "_" + i}
+							word={word}
 							className={[
-								"grid w-full grid-cols-2 gap-4 px-4 py-2",
 								i % 2 === 0 ? "bg-white/5" : "bg-white/10",
 								i === result.length - 1 ? "rounded-b-md" : "",
 							].join(" ")}

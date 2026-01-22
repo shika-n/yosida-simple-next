@@ -46,7 +46,7 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 		return db
 			.prepare<unknown[], Word>(
 				`
-			SELECT *
+			SELECT DISTINCT w.*
 			FROM words w
 			LEFT OUTER JOIN glossaries g ON w.id = g.word_id
 			WHERE meaning LIKE :meaning
