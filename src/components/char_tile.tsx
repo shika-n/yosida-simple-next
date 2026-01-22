@@ -20,7 +20,7 @@ export default function CharTile({
 	return (
 		<span
 			className={[
-				"flex size-16 items-center justify-center rounded-lg text-4xl font-bold select-none",
+				"flex size-12 items-center justify-center rounded-lg text-3xl font-bold select-none",
 				className,
 				color,
 			].join(" ")}
