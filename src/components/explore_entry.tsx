@@ -47,7 +47,10 @@ export default function ExploreEntry({
 				<span>{word.is_common ? "Yes" : "No"}</span>
 			</div>
 			{showDetails ? (
-				<div className="my-2 flex flex-col gap-1 rounded-sm bg-(--secondary)/15 px-4 py-2">
+				<div
+					className="my-2 flex flex-col gap-1 rounded-sm bg-(--secondary)/15 px-4 py-2"
+					onClick={(e) => e.stopPropagation()}
+				>
 					{glossaries?.map((glossary, i) => {
 						return (
 							<span key={i}>
