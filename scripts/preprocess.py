@@ -106,40 +106,40 @@ with sql.connect("dict.db") as db:
 
     root = xml_tree.getroot()
     for entry in root:
-        senses = entry.findall("sense")
-        if len(senses) == 0:
-            continue
-
-        sense = None
-        for s in senses:
-            if not is_pos_acceptable(s):
-                continue
-            sense = s
-
-        if sense is None:
-            continue
-
         is_common = is_common_word(entry)
 
         word = get_word_if_len(entry, 5)
         if word is None:
             continue
 
-        glossaries = get_glossaries(sense)
-        if glossaries is None:
+        senses = entry.findall("sense")
+        if len(senses) == 0:
             continue
 
-        res = cur.execute(
-            "INSERT INTO words (kanji, reading, is_common) VALUES (?, ?, ?)",
-            [word.kanji, word.reading, is_common]
-        )
-        word_id = cur.lastrowid
+        inserted_word_id = None
+        for sense in senses:
+            if not is_pos_acceptable(sense):
+                continue
 
-        for glossary in glossaries:
-            cur.execute(
-                "INSERT INTO glossaries (word_id, meaning) VALUES (?, ?)",
-                [word_id, glossary]
-            )
+            glossaries = get_glossaries(sense)
+            if glossaries is None:
+                continue
+
+            if inserted_word_id is None:
+                res = cur.execute(
+                    """
+                        INSERT INTO words (kanji, reading, is_common)
+                        VALUES (?, ?, ?)
+                    """,
+                    [word.kanji, word.reading, is_common]
+                )
+                inserted_word_id = cur.lastrowid
+
+            for glossary in glossaries:
+                cur.execute(
+                    "INSERT INTO glossaries (word_id, meaning) VALUES (?, ?)",
+                    [inserted_word_id, glossary]
+                )
 
     total_count = cur.execute("SELECT COUNT(id) FROM words").fetchall()[0][0]
     common_count = cur.execute(
