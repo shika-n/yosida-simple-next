@@ -1,5 +1,4 @@
 import { getDatabase } from "../db";
-import { getGlossariesOf, Glossary } from "./glossary";
 
 export interface Word {
 	id: number;

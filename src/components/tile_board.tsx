@@ -1,22 +1,22 @@
 "use client";
 
-import { use, useContext, useEffect } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import CharTile from "./char_tile";
-import { Word } from "@/lib/models/words";
-import { Glossary } from "@/lib/models/glossary";
 import {
 	GuessContext,
 	GuessData,
 	ProviderPair,
+	Tile,
 	TileStatus,
 } from "@/lib/contexts/guess_context";
 import { kanaMap } from "@/lib/kana_map";
-import { text } from "stream/consumers";
-import MainContainer from "./main_container";
 import Button from "./clickables/button";
+import test from "node:test";
 
 export const BOARD_WIDTH = 5;
-const LOCAL_STORAGE_KEY = "guess_state";
+export const BOARD_HEIGHT = 6;
+const LOCAL_STORAGE_KEY = "ysn_guess_state";
+const LOCAL_STORAGE_KEY_RANDOM = "ysn_random_guess_state";
 
 function isConversible(str: string) {
 	return (
@@ -151,11 +151,13 @@ function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
 async function handleSubmission(
 	guessContext: ProviderPair<GuessData>,
 	word: string,
+	isRandom: boolean,
 ) {
 	const res = await fetch("http://localhost:3000/api/guess", {
 		method: "POST",
 		body: JSON.stringify({
 			guess: word,
+			word_id: isRandom ? guessContext.state.guessRandomId : 0,
 		}),
 	});
 	if (res.status !== 200) {
@@ -183,13 +185,50 @@ async function handleSubmission(
 			index: prev.offset + BOARD_WIDTH,
 		};
 
-		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState));
+		localStorage.setItem(
+			isRandom ? LOCAL_STORAGE_KEY_RANDOM : LOCAL_STORAGE_KEY,
+			JSON.stringify(newState),
+		);
 
 		return newState;
 	});
 }
 
-export default function TileBoard() {
+async function fetchRandomWordId(): Promise<number> {
+	const params = new URLSearchParams([
+		["common", "1"],
+		["idOnly", "1"],
+	]);
+	const res = await fetch("http://localhost:3000/api/word/random?" + params);
+
+	if (res.status !== 200) {
+		return 0;
+	}
+
+	const json = await res.json();
+	return json.word?.id ?? 0;
+}
+
+async function newRandomWord(guessContext: ProviderPair<GuessData>) {
+	const id = await fetchRandomWordId();
+	guessContext?.setState((prev) => {
+		const newState: GuessData = {
+			...prev,
+			guessRandomId: id,
+		};
+		localStorage.setItem(
+			LOCAL_STORAGE_KEY_RANDOM,
+			JSON.stringify(newState),
+		);
+		return newState;
+	});
+}
+
+export default function TileBoard({
+	isRandom = false,
+}: {
+	isRandom?: boolean;
+}) {
 	const guessContext = useContext(GuessContext);
 
 	useEffect(() => {
@@ -197,12 +236,19 @@ export default function TileBoard() {
 			keyHandler(e, guessContext!),
 		);
 
-		const jsonValue = localStorage.getItem(LOCAL_STORAGE_KEY);
+		const jsonValue = localStorage.getItem(
+			isRandom ? LOCAL_STORAGE_KEY_RANDOM : LOCAL_STORAGE_KEY,
+		);
+		let storedState: GuessData | null = null;
 		if (jsonValue) {
-			const storedState = JSON.parse(jsonValue);
+			storedState = JSON.parse(jsonValue);
 			guessContext?.setState(() => ({
-				...storedState,
+				...storedState!,
 			}));
+		}
+
+		if (isRandom && (!storedState || storedState.guessRandomId === 0)) {
+			newRandomWord(guessContext!);
 		}
 	}, []);
 
@@ -243,9 +289,13 @@ export default function TileBoard() {
 			.join("");
 
 		if (nonEmptyTileCount === BOARD_WIDTH) {
-			handleSubmission(guessContext, word);
+			handleSubmission(guessContext, word, isRandom);
 		}
 	}, [guessContext?.state.requestSubmit]);
+
+	if (isRandom && guessContext?.state.guessRandomId === 0) {
+		return <TileBoardFallback />;
+	}
 
 	return (
 		<>
@@ -269,6 +319,26 @@ export default function TileBoard() {
 					);
 				})}
 			</div>
+			<Button
+				onClick={() => {
+					guessContext?.setState((prev) => ({
+						...prev,
+						guessRandomId: 0,
+						tiles: Array.from(
+							{ length: BOARD_WIDTH * BOARD_HEIGHT },
+							() => ({
+								text: "",
+								status: TileStatus.Undefined,
+							}),
+						),
+						index: 0,
+						offset: 0,
+					}));
+					newRandomWord(guessContext!);
+				}}
+			>
+				Reset
+			</Button>
 			<Button>
 				Request Meaning ({guessContext?.state.revealedGlossaryCount}/?)
 			</Button>
@@ -283,7 +353,7 @@ export default function TileBoard() {
 }
 
 export function TileBoardFallback() {
-	const tiles = Array.from({ length: BOARD_WIDTH * 6 }, () => 0);
+	const tiles = Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => 0);
 
 	return (
 		<>
@@ -295,7 +365,10 @@ export function TileBoardFallback() {
 			>
 				{tiles.map((_, i) => {
 					return (
-						<span className="flex size-16 animate-pulse items-center justify-center rounded-lg bg-(--primary-3) text-4xl font-bold select-none"></span>
+						<span
+							key={i}
+							className="flex size-16 animate-pulse items-center justify-center rounded-lg bg-(--primary-3) text-4xl font-bold select-none"
+						></span>
 					);
 				})}
 			</div>

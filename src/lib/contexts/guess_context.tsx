@@ -1,6 +1,6 @@
 "use client";
 
-import { BOARD_WIDTH } from "@/components/tile_board";
+import { BOARD_HEIGHT, BOARD_WIDTH } from "@/components/tile_board";
 import { createContext, ReactNode, useState } from "react";
 import { Glossary } from "../models/glossary";
 
@@ -23,6 +23,7 @@ export interface Tile {
 
 export interface GuessData {
 	currentUuid: string;
+	guessRandomId: number;
 
 	offset: number;
 	index: number;
@@ -40,11 +41,12 @@ export const GuessContext = createContext<ProviderPair<GuessData> | null>(null);
 export default function GuessProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<GuessData>({
 		currentUuid: "",
+		guessRandomId: 0,
 
 		offset: 0,
 		index: 0,
 		typing: "",
-		tiles: Array.from({ length: BOARD_WIDTH * 6 }, () => ({
+		tiles: Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => ({
 			text: "",
 			status: TileStatus.Undefined,
 		})),
