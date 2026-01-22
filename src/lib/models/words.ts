@@ -1,6 +1,7 @@
 import { off } from "process";
 import { getDatabase } from "../db";
 import { hiraToKataMap, kataToHiraMap } from "../kana_map";
+import { isAscii } from "buffer";
 
 export interface Word {
 	id: number;
@@ -34,8 +35,29 @@ export function getRandomWord(isCommon?: boolean): Word | undefined {
 }
 
 export function getWordsLike(str: string, offset?: number): Word[] | undefined {
+	if (str.trim().length === 0) {
+		return [];
+	}
+
 	offset = offset ?? 0;
 	const db = getDatabase();
+
+	if (isAscii(Buffer.from(str))) {
+		return db
+			.prepare<unknown[], Word>(
+				`
+			SELECT *
+			FROM words w
+			LEFT OUTER JOIN glossaries g ON w.id = g.word_id
+			WHERE meaning LIKE :meaning
+			ORDER BY is_common DESC
+			LIMIT 10
+		`,
+			)
+			.all({
+				meaning: "%" + str + "%",
+			});
+	}
 
 	const katakana = str
 		.split("")
