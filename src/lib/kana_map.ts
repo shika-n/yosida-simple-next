@@ -275,3 +275,7 @@ export const kataToHiraMap = new Map([
 
 	["ヮ", "ゎ"],
 ]);
+
+export const hiraToKataMap = new Map<string, string>(
+	kataToHiraMap.keys().map((key) => [kataToHiraMap.get(key)!, key]),
+);

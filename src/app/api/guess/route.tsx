@@ -22,8 +22,6 @@ export async function POST(request: NextRequest) {
 		.map((char) => kataToHiraMap.get(char) ?? char)
 		.join("");
 
-	console.log("Targetting:", targetReading);
-
 	let result: string = "";
 	for (let i = 0; i < targetReading.length; ++i) {
 		if (guess[i] === targetReading[i]) {
