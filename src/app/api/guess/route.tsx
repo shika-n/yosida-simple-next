@@ -1,4 +1,5 @@
 import { getCurrentWord } from "@/lib/guess_data";
+import { kataToHiraMap } from "@/lib/kana_map";
 import { getWordById } from "@/lib/models/words";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,13 +17,18 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
-	console.log("Targetting:", targetWord);
+	const targetReading = targetWord?.reading
+		.split("")
+		.map((char) => kataToHiraMap.get(char) ?? char)
+		.join("");
+
+	console.log("Targetting:", targetReading);
 
 	let result: string = "";
-	for (let i = 0; i < targetWord.reading.length; ++i) {
-		if (guess[i] === targetWord.reading[i]) {
+	for (let i = 0; i < targetReading.length; ++i) {
+		if (guess[i] === targetReading[i]) {
 			result += 1;
-		} else if (targetWord.reading.includes(guess[i])) {
+		} else if (targetReading.includes(guess[i])) {
 			result += 2;
 		} else {
 			result += 3;

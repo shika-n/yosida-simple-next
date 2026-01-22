@@ -6,12 +6,10 @@ import {
 	GuessContext,
 	GuessData,
 	ProviderPair,
-	Tile,
 	TileStatus,
 } from "@/lib/contexts/guess_context";
 import { kanaMap } from "@/lib/kana_map";
 import Button from "./clickables/button";
-import test from "node:test";
 
 export const BOARD_WIDTH = 5;
 export const BOARD_HEIGHT = 6;
@@ -153,6 +151,16 @@ async function handleSubmission(
 	word: string,
 	isRandom: boolean,
 ) {
+	if (!isRandom) {
+		// TODO: Move to controller
+		const isInSync = await checkUuid(
+			guessContext,
+			guessContext.state.currentUuid,
+		);
+		if (!isInSync) {
+			return;
+		}
+	}
 	const res = await fetch("http://localhost:3000/api/guess", {
 		method: "POST",
 		body: JSON.stringify({
@@ -224,6 +232,42 @@ async function newRandomWord(guessContext: ProviderPair<GuessData>) {
 	});
 }
 
+async function checkUuid(guessContext: ProviderPair<GuessData>, uuid: string) {
+	const res = await fetch("http://localhost:3000/api/word/current_uuid");
+
+	const reset = (currentUuid: string) => {
+		guessContext?.setState((prev) => {
+			const newState = {
+				...prev,
+				currentUuid,
+				tiles: Array.from(
+					{ length: BOARD_WIDTH * BOARD_HEIGHT },
+					() => ({
+						text: "",
+						status: TileStatus.Undefined,
+					}),
+				),
+				index: 0,
+				offset: 0,
+			};
+			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState));
+			return newState;
+		});
+	};
+
+	if (res.status !== 200) {
+		reset("");
+		return false;
+	}
+
+	const json: { uuid: string } = await res.json();
+	const shouldReset = uuid !== json.uuid;
+	if (shouldReset) {
+		reset(json.uuid);
+	}
+	return !shouldReset;
+}
+
 export default function TileBoard({
 	isRandom = false,
 }: {
@@ -247,7 +291,9 @@ export default function TileBoard({
 			}));
 		}
 
-		if (isRandom && (!storedState || storedState.guessRandomId === 0)) {
+		if (!isRandom) {
+			!checkUuid(guessContext!, storedState?.currentUuid ?? "");
+		} else if (!storedState || storedState.guessRandomId === 0) {
 			newRandomWord(guessContext!);
 		}
 	}, []);
@@ -319,26 +365,33 @@ export default function TileBoard({
 					);
 				})}
 			</div>
-			<Button
-				onClick={() => {
-					guessContext?.setState((prev) => ({
-						...prev,
-						guessRandomId: 0,
-						tiles: Array.from(
-							{ length: BOARD_WIDTH * BOARD_HEIGHT },
-							() => ({
-								text: "",
-								status: TileStatus.Undefined,
-							}),
-						),
-						index: 0,
-						offset: 0,
-					}));
-					newRandomWord(guessContext!);
-				}}
-			>
-				Reset
-			</Button>
+			{isRandom ? (
+				<Button
+					onClick={() => {
+						if (!isRandom) {
+							return;
+						}
+						guessContext?.setState((prev) => ({
+							...prev,
+							guessRandomId: 0,
+							tiles: Array.from(
+								{ length: BOARD_WIDTH * BOARD_HEIGHT },
+								() => ({
+									text: "",
+									status: TileStatus.Undefined,
+								}),
+							),
+							index: 0,
+							offset: 0,
+						}));
+						newRandomWord(guessContext!);
+					}}
+				>
+					Reset
+				</Button>
+			) : (
+				<></>
+			)}
 			<Button>
 				Request Meaning ({guessContext?.state.revealedGlossaryCount}/?)
 			</Button>
@@ -367,11 +420,14 @@ export function TileBoardFallback() {
 					return (
 						<span
 							key={i}
-							className="flex size-16 animate-pulse items-center justify-center rounded-lg bg-(--primary-3) text-4xl font-bold select-none"
+							className="flex size-12 animate-pulse items-center justify-center rounded-lg bg-(--primary-3) text-3xl font-bold select-none"
 						></span>
 					);
 				})}
 			</div>
+			<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
+				Reset
+			</button>
 			<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
 				Request Meaning (?/?)
 			</button>
