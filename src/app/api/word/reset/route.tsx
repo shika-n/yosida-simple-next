@@ -1,4 +1,4 @@
-import { newWord } from "@/lib/guess_data";
+import { getCurrentUuid, newWord } from "@/lib/guess_data";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "process";
 
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
 		newWord();
 
-		return NextResponse.json({ message: "OK" });
+		return NextResponse.json({ message: "OK", uuid: getCurrentUuid() });
 	} catch (e) {
 		console.log(e);
 		return NextResponse.json({ message: "Bad request" }, { status: 400 });

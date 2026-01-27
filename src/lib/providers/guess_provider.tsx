@@ -3,17 +3,19 @@
 import { BOARD_HEIGHT, BOARD_WIDTH } from "@/components/tile_board";
 import { createContext, ReactNode, useState } from "react";
 import { Glossary } from "../models/glossary";
-
-export interface ProviderPair<T> {
-	state: T;
-	setState: React.Dispatch<React.SetStateAction<T>>;
-}
+import { ProviderPair } from "./provider";
 
 export enum TileStatus {
 	Undefined = 0,
 	Correct = 1,
 	Misplaced = 2,
 	Wrong = 3,
+}
+
+export enum GuessingStatus {
+	Guessing,
+	Win,
+	Lose,
 }
 
 export interface Tile {
@@ -30,9 +32,10 @@ export interface GuessData {
 	typing: string;
 	tiles: Tile[];
 
+	guessingStatus: GuessingStatus;
+
 	requestSubmit: boolean;
 
-	revealedGlossaryCount: number;
 	revealedGlossaries: Glossary[];
 }
 
@@ -51,9 +54,10 @@ export default function GuessProvider({ children }: { children: ReactNode }) {
 			status: TileStatus.Undefined,
 		})),
 
+		guessingStatus: GuessingStatus.Guessing,
+
 		requestSubmit: false,
 
-		revealedGlossaryCount: 0,
 		revealedGlossaries: [],
 	});
 

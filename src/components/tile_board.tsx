@@ -1,20 +1,21 @@
 "use client";
 
-import { use, useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import CharTile from "./char_tile";
 import {
 	GuessContext,
 	GuessData,
-	ProviderPair,
 	TileStatus,
-} from "@/lib/contexts/guess_context";
+} from "@/lib/providers/guess_provider";
 import { kanaMap } from "@/lib/kana_map";
 import Button from "./clickables/button";
+import { ProviderPair } from "@/lib/providers/provider";
+import { DialogContext } from "@/lib/providers/dialog_provider";
 
 export const BOARD_WIDTH = 5;
 export const BOARD_HEIGHT = 6;
 const LOCAL_STORAGE_KEY = "ysn_guess_state";
-const LOCAL_STORAGE_KEY_RANDOM = "ysn_random_guess_state";
+const LOCAL_STORAGE_KEY_CASUAL = "ysn_casual_guess_state";
 
 function isConversible(str: string) {
 	return (
@@ -27,12 +28,57 @@ function getKanaConversion(typed: string): string[] | null {
 	return kanaMap.get(typed)?.split("") ?? null;
 }
 
+function saveStateToLocalStorage(state: GuessData, isCasual: boolean) {
+	localStorage.setItem(
+		isCasual ? LOCAL_STORAGE_KEY_CASUAL : LOCAL_STORAGE_KEY,
+		JSON.stringify(state),
+	);
+}
+
+function reset(
+	guessContext: ProviderPair<GuessData>,
+	isCasual: boolean,
+	uuid: string = "",
+) {
+	guessContext.setState((prev) => {
+		const newState = {
+			...prev,
+			currentUuid: uuid,
+			tiles: Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => ({
+				text: "",
+				status: TileStatus.Undefined,
+			})),
+			index: 0,
+			offset: 0,
+			revealedGlossaries: [],
+		};
+		saveStateToLocalStorage(newState, isCasual);
+		return newState;
+	});
+}
+
+async function checkUuid(guessContext: ProviderPair<GuessData>, uuid: string) {
+	const res = await fetch("http://localhost:3000/api/word/current_uuid");
+
+	if (res.status !== 200) {
+		reset(guessContext, false, "");
+		return false;
+	}
+
+	const json: { uuid: string } = await res.json();
+	const shouldReset = uuid !== json.uuid;
+	if (shouldReset) {
+		reset(guessContext, false, json.uuid);
+	}
+	return !shouldReset;
+}
+
 function keyHandler(e: KeyboardEvent, guessContext: ProviderPair<GuessData>) {
 	if (["Backspace", " ", "Enter"].includes(e.key)) {
 		e.preventDefault();
 	}
 	if (e.key === "Backspace") {
-		guessContext?.setState((prev) => {
+		guessContext.setState((prev) => {
 			if (prev.typing.length === 0) {
 				let targetIndex = prev.index;
 
@@ -78,7 +124,7 @@ function keyHandler(e: KeyboardEvent, guessContext: ProviderPair<GuessData>) {
 			};
 		});
 	} else if (e.key.length === 1) {
-		guessContext?.setState((prev) => {
+		guessContext.setState((prev) => {
 			// Add char, empty tile if invalid
 			let currentTyping = prev.typing + e.key;
 			if (!isConversible(currentTyping)) {
@@ -96,11 +142,11 @@ function keyHandler(e: KeyboardEvent, guessContext: ProviderPair<GuessData>) {
 }
 
 function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
-	const currentTyping = guessContext!.state.typing;
+	const currentTyping = guessContext.state.typing;
 	const kana = getKanaConversion(currentTyping);
 	if (kana && kana.length > 0) {
 		// Convert to kana and advance index
-		guessContext?.setState((prev) => ({
+		guessContext.setState((prev) => ({
 			...prev,
 			typing: "",
 			tiles: prev.tiles.map((val, i) => {
@@ -128,7 +174,7 @@ function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
 			currentTyping[0] === currentTyping[1]
 		) {
 			// Handle small tsu with double consonant
-			guessContext?.setState((prev) => ({
+			guessContext.setState((prev) => ({
 				...prev,
 				tiles: prev.tiles.map((val, i) =>
 					i === prev.index ? { ...val, text: "っ" } : val,
@@ -138,7 +184,7 @@ function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
 			}));
 		} else if (!isPossible) {
 			// Delete if not possible to convert
-			guessContext?.setState((prev) => ({
+			guessContext.setState((prev) => ({
 				...prev,
 				typing: "",
 			}));
@@ -149,15 +195,16 @@ function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
 async function handleSubmission(
 	guessContext: ProviderPair<GuessData>,
 	word: string,
-	isRandom: boolean,
+	isCasual: boolean,
 ) {
-	if (!isRandom) {
+	if (!isCasual) {
 		// TODO: Move to controller
 		const isInSync = await checkUuid(
 			guessContext,
 			guessContext.state.currentUuid,
 		);
 		if (!isInSync) {
+			alert("Mismatched word, resetting");
 			return;
 		}
 	}
@@ -165,7 +212,7 @@ async function handleSubmission(
 		method: "POST",
 		body: JSON.stringify({
 			guess: word,
-			word_id: isRandom ? guessContext.state.guessRandomId : 0,
+			word_id: isCasual ? guessContext.state.guessRandomId : 0,
 		}),
 	});
 	if (res.status !== 200) {
@@ -193,10 +240,16 @@ async function handleSubmission(
 			index: prev.offset + BOARD_WIDTH,
 		};
 
-		localStorage.setItem(
-			isRandom ? LOCAL_STORAGE_KEY_RANDOM : LOCAL_STORAGE_KEY,
-			JSON.stringify(newState),
-		);
+		saveStateToLocalStorage(newState, isCasual);
+
+		if (
+			guessResult ===
+			Array.from({ length: BOARD_WIDTH }, () => "1").join("")
+		) {
+			alert("WIN");
+		} else if (newState.index >= BOARD_WIDTH * BOARD_HEIGHT) {
+			alert("Lose state");
+		}
 
 		return newState;
 	});
@@ -219,92 +272,93 @@ async function fetchRandomWordId(): Promise<number> {
 
 async function newRandomWord(guessContext: ProviderPair<GuessData>) {
 	const id = await fetchRandomWordId();
-	guessContext?.setState((prev) => {
+	guessContext.setState((prev) => {
 		const newState: GuessData = {
 			...prev,
 			guessRandomId: id,
 		};
-		localStorage.setItem(
-			LOCAL_STORAGE_KEY_RANDOM,
-			JSON.stringify(newState),
-		);
+		saveStateToLocalStorage(newState, true);
 		return newState;
 	});
 }
 
-async function checkUuid(guessContext: ProviderPair<GuessData>, uuid: string) {
-	const res = await fetch("http://localhost:3000/api/word/current_uuid");
-
-	const reset = (currentUuid: string) => {
-		guessContext?.setState((prev) => {
-			const newState = {
-				...prev,
-				currentUuid,
-				tiles: Array.from(
-					{ length: BOARD_WIDTH * BOARD_HEIGHT },
-					() => ({
-						text: "",
-						status: TileStatus.Undefined,
-					}),
-				),
-				index: 0,
-				offset: 0,
-			};
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState));
-			return newState;
-		});
-	};
-
+async function fetchGlossaries(
+	guessContext: ProviderPair<GuessData>,
+	isCasual: boolean,
+) {
+	const params = new URLSearchParams([
+		["index", guessContext.state.revealedGlossaries.length.toString()],
+	]);
+	const res = await fetch(
+		"http://localhost:3000/api/word/" +
+			guessContext.state.guessRandomId +
+			"/glossary?" +
+			params,
+	);
 	if (res.status !== 200) {
-		reset("");
-		return false;
+		return;
 	}
 
-	const json: { uuid: string } = await res.json();
-	const shouldReset = uuid !== json.uuid;
-	if (shouldReset) {
-		reset(json.uuid);
+	const json = await res.json();
+	if (!json.glossary) {
+		return;
 	}
-	return !shouldReset;
+	guessContext.setState((prev) => {
+		const newState = {
+			...prev,
+			revealedGlossaries: [...prev.revealedGlossaries, json.glossary],
+		};
+		saveStateToLocalStorage(newState, isCasual);
+		return newState;
+	});
 }
 
 export default function TileBoard({
-	isRandom = false,
+	isCasual = false,
 }: {
-	isRandom?: boolean;
+	isCasual?: boolean;
 }) {
-	const guessContext = useContext(GuessContext);
+	const guessContext = useContext(GuessContext)!;
+	const dialogContext = useContext(DialogContext)!;
 
 	useEffect(() => {
 		document.addEventListener("keydown", (e) =>
-			keyHandler(e, guessContext!),
+			keyHandler(e, guessContext),
 		);
 
 		const jsonValue = localStorage.getItem(
-			isRandom ? LOCAL_STORAGE_KEY_RANDOM : LOCAL_STORAGE_KEY,
+			isCasual ? LOCAL_STORAGE_KEY_CASUAL : LOCAL_STORAGE_KEY,
 		);
 		let storedState: GuessData | null = null;
 		if (jsonValue) {
 			storedState = JSON.parse(jsonValue);
-			guessContext?.setState(() => ({
+			guessContext.setState(() => ({
 				...storedState!,
 			}));
 		}
 
-		if (!isRandom) {
-			!checkUuid(guessContext!, storedState?.currentUuid ?? "");
+		if (!isCasual) {
+			(async () => {
+				const isInSync = await checkUuid(
+					guessContext,
+					storedState?.currentUuid ?? "",
+				);
+				if (!isInSync) {
+					alert("Mismatched word!");
+				}
+			})();
 		} else if (!storedState || storedState.guessRandomId === 0) {
-			newRandomWord(guessContext!);
+			newRandomWord(guessContext);
 		}
 	}, []);
 
 	useEffect(
-		() => handleKanaConversion(guessContext!),
-		[guessContext?.state.typing],
+		() => handleKanaConversion(guessContext),
+		[guessContext.state.typing],
 	);
 
 	useEffect(() => {
-		const state = guessContext?.state;
+		const state = guessContext.state;
 		if (!state || !state.requestSubmit) {
 			return;
 		}
@@ -335,73 +389,71 @@ export default function TileBoard({
 			.join("");
 
 		if (nonEmptyTileCount === BOARD_WIDTH) {
-			handleSubmission(guessContext, word, isRandom);
+			handleSubmission(guessContext, word, isCasual);
 		}
-	}, [guessContext?.state.requestSubmit]);
+	}, [guessContext.state.requestSubmit]);
 
-	if (isRandom && guessContext?.state.guessRandomId === 0) {
+	if (isCasual && guessContext.state.guessRandomId === 0) {
 		return <TileBoardFallback />;
 	}
 
 	return (
-		<>
+		<div className="grid w-full grid-cols-2 justify-center gap-4">
 			<div
-				className="m-auto grid w-fit gap-2"
+				className="grid size-fit gap-2 justify-self-end"
 				style={{
 					gridTemplateColumns: "repeat(" + BOARD_WIDTH + ", 1fr)",
 				}}
 			>
-				{guessContext?.state.tiles.map((value, i) => {
+				{guessContext.state.tiles.map((value, i) => {
 					return (
 						<CharTile
 							key={i}
 							tile={value}
 							className={
 								i === guessContext.state.index
-									? "border-2 border-(--secondary)"
+									? "border-2 border-(--accent)"
 									: ""
 							}
 						/>
 					);
 				})}
 			</div>
-			{isRandom ? (
-				<Button
-					onClick={() => {
-						if (!isRandom) {
-							return;
-						}
-						guessContext?.setState((prev) => ({
-							...prev,
-							guessRandomId: 0,
-							tiles: Array.from(
-								{ length: BOARD_WIDTH * BOARD_HEIGHT },
-								() => ({
-									text: "",
-									status: TileStatus.Undefined,
-								}),
-							),
-							index: 0,
-							offset: 0,
-						}));
-						newRandomWord(guessContext!);
-					}}
-				>
-					Reset
+			<div className="flex flex-col items-start gap-4 justify-self-start">
+				{isCasual ? (
+					<Button
+						onClick={() => {
+							if (!isCasual) {
+								return;
+							}
+							reset(guessContext, true);
+							newRandomWord(guessContext);
+						}}
+					>
+						Reset
+					</Button>
+				) : (
+					<></>
+				)}
+				<Button onClick={() => fetchGlossaries(guessContext, isCasual)}>
+					Give Me Hint
 				</Button>
-			) : (
-				<></>
-			)}
-			<Button>
-				Request Meaning ({guessContext?.state.revealedGlossaryCount}/?)
-			</Button>
-			Glossary:
-			<ul>
-				{guessContext?.state.revealedGlossaries.map((glossary) => {
-					return <li key={glossary.id}>{glossary.meaning}</li>;
-				})}
-			</ul>
-		</>
+				<ol>
+					Glossary:
+					{guessContext.state.revealedGlossaries.map((glossary) => {
+						return (
+							<li
+								key={glossary.id}
+								className="list-inside list-decimal"
+							>
+								{glossary.meaning.charAt(0).toUpperCase() +
+									glossary.meaning.substring(1)}
+							</li>
+						);
+					})}
+				</ol>
+			</div>
+		</div>
 	);
 }
 
@@ -409,9 +461,9 @@ export function TileBoardFallback() {
 	const tiles = Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => 0);
 
 	return (
-		<>
+		<div className="grid grid-cols-2 gap-4">
 			<div
-				className="m-auto grid w-fit gap-2"
+				className="m-auto grid w-fit gap-2 justify-self-end"
 				style={{
 					gridTemplateColumns: "repeat(" + BOARD_WIDTH + ", 1fr)",
 				}}
@@ -425,14 +477,15 @@ export function TileBoardFallback() {
 					);
 				})}
 			</div>
-			<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
-				Reset
-			</button>
-			<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
-				Request Meaning (?/?)
-			</button>
-			Glossary:
-			<span></span>
-		</>
+			<div className="flex flex-col items-start gap-4 justify-self-start">
+				<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
+					Reset
+				</button>
+				<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
+					Give Me Hint
+				</button>
+				<ol>Glossary:</ol>
+			</div>
+		</div>
 	);
 }

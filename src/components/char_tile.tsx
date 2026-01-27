@@ -1,4 +1,4 @@
-import { Tile, TileStatus } from "@/lib/contexts/guess_context";
+import { Tile, TileStatus } from "@/lib/providers/guess_provider";
 
 export default function CharTile({
 	tile,

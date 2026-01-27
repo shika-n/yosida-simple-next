@@ -6,7 +6,8 @@
 	--primary-3: oklch(from var(--primary) 0.4 c h);
 	--primary-4: oklch(from var(--primary) 0.3 c h);
 	--primary-5: oklch(from var(--primary) 0.25 c h);
-	--secondary: oklch(80% 0.12 calc(120 + 180));
+	--secondary: oklch(from var(--primary) l c calc(h + 180));
+	--accent: oklch(80% 0.12 calc(120 + 180));
 	--background: oklch(from var(--primary) 0.2 c h);
 	--foreground: oklch(100% 0.05 120);
 }

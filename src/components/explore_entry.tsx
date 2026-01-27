@@ -53,10 +53,20 @@ export default function ExploreEntry({
 				>
 					{glossaries?.map((glossary, i) => {
 						return (
-							<span key={i}>
-								{glossary.meaning.charAt(0).toUpperCase() +
-									glossary.meaning.substring(1)}
-							</span>
+							<div
+								key={i}
+								className="grid"
+								style={{
+									gridTemplateColumns:
+										"minmax(min-content, 2em) 1fr",
+								}}
+							>
+								<span className="mr-2">{i + 1}.</span>
+								<span>
+									{glossary.meaning.charAt(0).toUpperCase() +
+										glossary.meaning.substring(1)}
+								</span>
+							</div>
 						);
 					}) ?? "Loading..."}
 				</div>

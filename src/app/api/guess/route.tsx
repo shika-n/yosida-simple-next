@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
 
 	if (!targetWord) {
 		return NextResponse.json(
-			{ message: "Shouldn't happen. There is no current word!" },
-			{ status: 500 },
+			{ message: "Word not found!" },
+			{ status: 404 },
 		);
 	}
 

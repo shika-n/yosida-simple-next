@@ -47,6 +47,7 @@ export default function ExplorePage() {
 				className="w-full rounded-md bg-white/10 px-4 py-2"
 				value={searchValue}
 				onChange={(e) => setSearchValue(e.target.value)}
+				placeholder="Search・検索・けんさく"
 			/>
 			<div className="flex w-full flex-col gap-1 px-4">
 				<div className="grid w-full grid-cols-3 gap-4 rounded-t-md bg-white/10 px-4 py-2 text-center font-bold">
