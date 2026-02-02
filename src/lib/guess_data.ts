@@ -14,7 +14,6 @@ export function getCurrentWord() {
 	if (!currentWord) {
 		newWord();
 	}
-
 	return currentWord;
 }
 

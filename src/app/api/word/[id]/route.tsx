@@ -1,3 +1,4 @@
+import { getCurrentWord } from "@/lib/guess_data";
 import { getGlossariesOf } from "@/lib/models/glossary";
 import { getWordById } from "@/lib/models/words";
 import { NextResponse } from "next/server";
@@ -8,7 +9,11 @@ export async function GET(
 ) {
 	const { id } = await params;
 
-	const word = getWordById(id);
+	let word = getWordById(Number(id));
+
+	if (Number(id) === 0) {
+		word = getCurrentWord()!;
+	}
 
 	if (!word) {
 		return NextResponse.json(

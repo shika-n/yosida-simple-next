@@ -5,12 +5,15 @@ import CharTile from "./char_tile";
 import {
 	GuessContext,
 	GuessData,
+	GuessingStatus,
 	TileStatus,
 } from "@/lib/providers/guess_provider";
 import { kanaMap } from "@/lib/kana_map";
 import Button from "./clickables/button";
 import { ProviderPair } from "@/lib/providers/provider";
-import { DialogContext } from "@/lib/providers/dialog_provider";
+import { DialogContext, DialogData } from "@/lib/providers/dialog_provider";
+import LoseDialog from "./dialogs/lose_dialog";
+import WinDialog from "./dialogs/win_dialog";
 
 export const BOARD_WIDTH = 5;
 export const BOARD_HEIGHT = 6;
@@ -51,6 +54,7 @@ function reset(
 			index: 0,
 			offset: 0,
 			revealedGlossaries: [],
+			guessingStatus: GuessingStatus.Guessing,
 		};
 		saveStateToLocalStorage(newState, isCasual);
 		return newState;
@@ -79,6 +83,9 @@ function keyHandler(e: KeyboardEvent, guessContext: ProviderPair<GuessData>) {
 	}
 	if (e.key === "Backspace") {
 		guessContext.setState((prev) => {
+			if (prev.guessingStatus !== GuessingStatus.Guessing) {
+				return prev;
+			}
 			if (prev.typing.length === 0) {
 				let targetIndex = prev.index;
 
@@ -118,6 +125,9 @@ function keyHandler(e: KeyboardEvent, guessContext: ProviderPair<GuessData>) {
 		// we use setState to signal when we press enter to request submission
 		// and handle it with useEffect
 		guessContext.setState((prev) => {
+			if (prev.guessingStatus !== GuessingStatus.Guessing) {
+				return prev;
+			}
 			return {
 				...prev,
 				requestSubmit: true,
@@ -125,6 +135,9 @@ function keyHandler(e: KeyboardEvent, guessContext: ProviderPair<GuessData>) {
 		});
 	} else if (e.key.length === 1) {
 		guessContext.setState((prev) => {
+			if (prev.guessingStatus !== GuessingStatus.Guessing) {
+				return prev;
+			}
 			// Add char, empty tile if invalid
 			let currentTyping = prev.typing + e.key;
 			if (!isConversible(currentTyping)) {
@@ -194,6 +207,7 @@ function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
 
 async function handleSubmission(
 	guessContext: ProviderPair<GuessData>,
+	dialogContext: ProviderPair<DialogData>,
 	word: string,
 	isCasual: boolean,
 ) {
@@ -238,19 +252,19 @@ async function handleSubmission(
 			}),
 			offset: prev.offset + BOARD_WIDTH,
 			index: prev.offset + BOARD_WIDTH,
+			requestSubmit: false,
 		};
-
-		saveStateToLocalStorage(newState, isCasual);
 
 		if (
 			guessResult ===
 			Array.from({ length: BOARD_WIDTH }, () => "1").join("")
 		) {
-			alert("WIN");
+			newState.guessingStatus = GuessingStatus.Win;
 		} else if (newState.index >= BOARD_WIDTH * BOARD_HEIGHT) {
-			alert("Lose state");
+			newState.guessingStatus = GuessingStatus.Lose;
 		}
 
+		saveStateToLocalStorage(newState, isCasual);
 		return newState;
 	});
 }
@@ -344,7 +358,19 @@ export default function TileBoard({
 					storedState?.currentUuid ?? "",
 				);
 				if (!isInSync) {
-					alert("Mismatched word!");
+					dialogContext.state.open(
+						<div className="flex flex-col items-center gap-4">
+							<h2 className="text-3xl font-bold">※注意※</h2>
+							<p className="text-center">
+								デイリーの言葉が更新されました
+								<br />
+								ボードをリセットします
+							</p>
+							<Button onClick={() => dialogContext.state.close()}>
+								OK
+							</Button>
+						</div>,
+					);
 				}
 			})();
 		} else if (!storedState || storedState.guessRandomId === 0) {
@@ -375,12 +401,10 @@ export default function TileBoard({
 			return;
 		}
 
-		let nonEmptyTileCount = 0;
 		const word = state.tiles
 			.map((val, i) => {
 				if (i >= state.offset && i < state.offset + BOARD_WIDTH) {
 					if (val.text.length > 0) {
-						nonEmptyTileCount++;
 						return val.text;
 					}
 				}
@@ -388,10 +412,22 @@ export default function TileBoard({
 			})
 			.join("");
 
-		if (nonEmptyTileCount === BOARD_WIDTH) {
-			handleSubmission(guessContext, word, isCasual);
+		if (word.length === BOARD_WIDTH) {
+			handleSubmission(guessContext, dialogContext, word, isCasual);
 		}
 	}, [guessContext.state.requestSubmit]);
+
+	useEffect(() => {
+		if (guessContext.state.guessingStatus === GuessingStatus.Win) {
+			dialogContext.state.open(
+				<WinDialog wordId={guessContext.state.guessRandomId} />,
+			);
+		} else if (guessContext.state.guessingStatus === GuessingStatus.Lose) {
+			dialogContext.state.open(
+				<LoseDialog wordId={guessContext.state.guessRandomId} />,
+			);
+		}
+	}, [guessContext.state.guessingStatus]);
 
 	if (isCasual && guessContext.state.guessRandomId === 0) {
 		return <TileBoardFallback />;
@@ -411,7 +447,9 @@ export default function TileBoard({
 							key={i}
 							tile={value}
 							className={
-								i === guessContext.state.index
+								i === guessContext.state.index &&
+								guessContext.state.guessingStatus ===
+									GuessingStatus.Guessing
 									? "border-2 border-(--accent)"
 									: ""
 							}
@@ -430,16 +468,16 @@ export default function TileBoard({
 							newRandomWord(guessContext);
 						}}
 					>
-						Reset
+						リセット・Reset
 					</Button>
 				) : (
 					<></>
 				)}
 				<Button onClick={() => fetchGlossaries(guessContext, isCasual)}>
-					Give Me Hint
+					ヒント・Hint
 				</Button>
 				<ol>
-					Glossary:
+					ヒント:
 					{guessContext.state.revealedGlossaries.map((glossary) => {
 						return (
 							<li
@@ -479,12 +517,12 @@ export function TileBoardFallback() {
 			</div>
 			<div className="flex flex-col items-start gap-4 justify-self-start">
 				<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
-					Reset
+					リセット・Reset
 				</button>
 				<button className="w-fit animate-pulse rounded-md border-2 border-transparent bg-(--primary-3) px-4 py-2">
-					Give Me Hint
+					ヒント・Hint
 				</button>
-				<ol>Glossary:</ol>
+				<ol>ヒント:</ol>
 			</div>
 		</div>
 	);

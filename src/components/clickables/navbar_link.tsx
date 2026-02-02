@@ -11,7 +11,6 @@ export default function NavLink({
 	children: ReactNode;
 }) {
 	const pathname = usePathname();
-	console.log(pathname, to, pathname === to);
 	return (
 		<a
 			href={to}
