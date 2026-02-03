@@ -1,13 +1,15 @@
-import { off } from "process";
 import { getDatabase } from "../db";
-import { hiraToKataMap, kataToHiraMap } from "../kana_map";
+import { hiraToKataMap } from "../kana_map";
 import { isAscii } from "buffer";
+import { insertAttemptEntry } from "./attempts";
 
 export interface Word {
 	id: number;
 	kanji: string;
 	reading: string;
 	is_common: number;
+	successes: number;
+	fails: number;
 }
 
 export function getWordById(id: number): Word | undefined {
@@ -81,4 +83,22 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 			hiraReading: "%" + str + "%",
 			kanji: "%" + str + "%",
 		});
+}
+
+export function updateSucessesAndFails(
+	wordId: number,
+	isSuccessAttempt: boolean,
+	nth: number,
+) {
+	const db = getDatabase();
+	if (isSuccessAttempt) {
+		db.prepare(
+			"UPDATE words SET successes = successes + 1 WHERE id = :wordId",
+		).run({ wordId });
+		insertAttemptEntry(wordId, nth);
+	} else {
+		db.prepare("UPDATE words SET fails = fails + 1 WHERE id = :wordId").run(
+			{ wordId },
+		);
+	}
 }

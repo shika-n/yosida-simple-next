@@ -1,10 +1,14 @@
+import { Attempt } from "@/lib/models/attempts";
 import { Glossary } from "@/lib/models/glossary";
 import { Word } from "@/lib/models/words";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 async function fetchWordData(
 	setData: Dispatch<
-		SetStateAction<{ word: Word; glossaries: Glossary[] } | null>
+		SetStateAction<{
+			word: Word;
+			glossaries: Glossary[];
+		} | null>
 	>,
 	wordId: number,
 ) {
@@ -30,6 +34,11 @@ export default function WordReveal({ wordId }: { wordId: number }) {
 		fetchWordData(setData, wordId);
 	}, [wordId]);
 
+	const successAttempts = data?.word.successes ?? 0;
+	const totalAttempts = successAttempts + (data?.word.fails ?? 0);
+	const successRatio =
+		Math.floor((successAttempts * 10000.0) / totalAttempts) / 100.0;
+
 	return (
 		<div className="flex flex-col items-center gap-1">
 			<h3 className="text-2xl font-bold">{data?.word.kanji}</h3>
@@ -47,6 +56,11 @@ export default function WordReveal({ wordId }: { wordId: number }) {
 					);
 				})}
 			</ol>
+			<div className="flex flex-col gap-0">
+				<span>勝利数: {successAttempts}</span>
+				<span>総合数: {totalAttempts}</span>
+				<span>勝利率: {successRatio}%</span>
+			</div>
 		</div>
 	);
 }

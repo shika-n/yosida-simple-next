@@ -15,7 +15,7 @@ export default function DialogModal() {
 			onClick={() => dialogContext.state.close()}
 		>
 			<div
-				className="m-auto flex w-80 flex-col gap-2 rounded-xl border-2 border-(--primary-5) bg-(--primary-4) p-4 shadow-md"
+				className="m-auto flex w-80 flex-col items-center gap-2 rounded-xl border-2 border-(--primary-5) bg-(--primary-4) p-4 shadow-md"
 				onClick={(e) => e.stopPropagation()}
 			>
 				{dialogContext.state.content}

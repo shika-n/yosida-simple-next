@@ -16,7 +16,7 @@ import LoseDialog from "./dialogs/lose_dialog";
 import WinDialog from "./dialogs/win_dialog";
 
 export const BOARD_WIDTH = 5;
-export const BOARD_HEIGHT = 6;
+export const BOARD_HEIGHT = 8;
 const LOCAL_STORAGE_KEY = "ysn_guess_state";
 const LOCAL_STORAGE_KEY_CASUAL = "ysn_casual_guess_state";
 
@@ -227,6 +227,7 @@ async function handleSubmission(
 		body: JSON.stringify({
 			guess: word,
 			word_id: isCasual ? guessContext.state.guessRandomId : 0,
+			nth: guessContext.state.offset / BOARD_WIDTH,
 		}),
 	});
 	if (res.status !== 200) {

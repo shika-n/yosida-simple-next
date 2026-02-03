@@ -79,21 +79,22 @@ def get_glossaries(sense):
     return [glossary.text for glossary in glossaries]
 
 
-filename = "tmp/JMdict_e.xml"
+def drop_tables(cur: sql.Cursor):
+    cur.execute("DROP TABLE IF EXISTS words")
+    cur.execute("DROP TABLE IF EXISTS glossaries")
+    cur.execute("DROP TABLE IF EXISTS attempts")
+    cur.execute("DROP TABLE IF EXISTS attempts_nth")
 
-print("Parsing...")
-xml_tree = et.parse(filename)
-print("Parsing done")
 
-with sql.connect("dict.db") as db:
-    print("Creating database")
-    cur = db.cursor()
+def create_tables(cur: sql.Cursor):
     cur.execute("""
         CREATE TABLE words (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             kanji VARCHAR(5) NOT NULL,
             reading VARCHAR(5) NOT NULL,
-            is_common BOOLEAN NOT NULL
+            is_common BOOLEAN NOT NULL,
+            successes INT NOT NULL,
+            fails INT NOT NULL
         )
     """)
     cur.execute("""
@@ -103,6 +104,26 @@ with sql.connect("dict.db") as db:
             meaning VARCHAR(100) NOT NULL
         )
     """)
+    cur.execute("""
+        CREATE TABLE attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            word_id INTEGER NOT NULL REFERENCES words(id),
+            success_at_nth INTEGER NOT NULL
+        )
+    """)
+
+
+filename = "tmp/JMdict_e.xml"
+
+print("Parsing...")
+xml_tree = et.parse(filename)
+print("Parsing done")
+
+with sql.connect("dict.db") as db:
+    print("Creating database")
+    cur = db.cursor()
+    drop_tables(cur)
+    create_tables(cur)
 
     root = xml_tree.getroot()
     for entry in root:
@@ -128,8 +149,10 @@ with sql.connect("dict.db") as db:
             if inserted_word_id is None:
                 res = cur.execute(
                     """
-                        INSERT INTO words (kanji, reading, is_common)
-                        VALUES (?, ?, ?)
+                        INSERT INTO words (
+                            kanji, reading, is_common, successes, fails
+                        )
+                        VALUES (?, ?, ?, 0, 0)
                     """,
                     [word.kanji, word.reading, is_common]
                 )

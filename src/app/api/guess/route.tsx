@@ -1,6 +1,6 @@
 import { getCurrentWord } from "@/lib/guess_data";
 import { kataToHiraMap } from "@/lib/kana_map";
-import { getWordById } from "@/lib/models/words";
+import { getWordById, updateSucessesAndFails } from "@/lib/models/words";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
 
 	const guess = body.guess;
 	const wordId = Number(body.word_id);
+	const nthAttempt = Number(body.nth) + 1;
 	const targetWord = wordId === 0 ? getCurrentWord() : getWordById(wordId);
 
 	if (!targetWord) {
@@ -31,6 +32,12 @@ export async function POST(request: NextRequest) {
 		} else {
 			result += 3;
 		}
+	}
+
+	if (result === "11111") {
+		updateSucessesAndFails(targetWord.id, true, nthAttempt);
+	} else if (nthAttempt === 6) {
+		updateSucessesAndFails(targetWord.id, false, nthAttempt);
 	}
 
 	return NextResponse.json({ result: result });

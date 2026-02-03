@@ -1,7 +1,7 @@
 "use client";
 
 import ExploreEntry from "@/components/explore_entry";
-import MainContainer from "@/components/main_container";
+import { Attempt } from "@/lib/models/attempts";
 import { Word } from "@/lib/models/words";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -20,7 +20,7 @@ async function fetchData(
 		}
 
 		const json = await res.json();
-		setResult(json.result);
+		setResult(json);
 	} catch (e) {
 		setResult([]);
 	}
@@ -50,9 +50,10 @@ export default function ExplorePage() {
 				placeholder="Search・検索・けんさく"
 			/>
 			<div className="flex w-full flex-col gap-1 px-4">
-				<div className="grid w-full grid-cols-3 gap-4 rounded-t-md bg-white/10 px-4 py-2 text-center font-bold">
+				<div className="grid w-full grid-cols-4 gap-4 rounded-t-md bg-white/10 px-4 py-2 text-center font-bold">
 					<span className="border-r-2">Kanji</span>
 					<span className="border-r-2">Reading</span>
+					<span className="border-r-2">Ratio</span>
 					<span>Is Common</span>
 				</div>
 				{result.map((word, i) => {

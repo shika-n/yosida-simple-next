@@ -1,5 +1,6 @@
 "use client";
 
+import { Attempt } from "@/lib/models/attempts";
 import { Glossary } from "@/lib/models/glossary";
 import { Word } from "@/lib/models/words";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -31,6 +32,15 @@ export default function ExploreEntry({
 	const [showDetails, setShowDetails] = useState<boolean>(false);
 	const [glossaries, setGlossaries] = useState<Glossary[] | null>(null);
 
+	const successAttempts = word.successes ?? 0;
+	const totalAttempts = successAttempts + (word.fails ?? 0);
+	let successRatio =
+		Math.floor((successAttempts * 10000.0) / totalAttempts) / 100.0;
+
+	if (isNaN(successRatio)) {
+		successRatio = 0;
+	}
+
 	return (
 		<div
 			onClick={() => {
@@ -39,11 +49,12 @@ export default function ExploreEntry({
 				}
 				setShowDetails((prev) => !prev);
 			}}
-			className={["px-4 py-2", className].join(" ")}
+			className={["px-4 py-2 hover:ring-1", className].join(" ")}
 		>
-			<div className="grid w-full grid-cols-3 gap-4">
+			<div className="grid w-full grid-cols-4 gap-4">
 				<span className="border-r-2">{word.kanji}</span>
 				<span className="border-r-2">{word.reading}</span>
+				<span className="border-r-2">{successRatio}%</span>
 				<span>{word.is_common ? "Yes" : "No"}</span>
 			</div>
 			{showDetails ? (
