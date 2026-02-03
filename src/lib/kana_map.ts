@@ -51,6 +51,7 @@ export const kanaMap = new Map([
 	["hu", "ふ"],
 	["he", "へ"],
 	["ho", "ほ"],
+	["fu", "ふ"],
 	["ba", "ば"],
 	["bi", "び"],
 	["bu", "ぶ"],
