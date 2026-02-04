@@ -21,8 +21,10 @@ pnpm install
 
 データベースを作る
 ```
-python scripts/preprocess.py
+./setup.sh
 ```
+> [!IMPORTANT]
+> 前処理はPythonが必要です
 
 ## 開発環境で実行
 ```
