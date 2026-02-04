@@ -4,7 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import GuessProvider from "@/lib/providers/guess_provider";
 import MainContainer from "@/components/main_container";
-import DialogModal from "@/components/dialog_modal";
+import DialogModal from "@/components/dialogs/dialog_modal";
 import DialogProvider from "@/lib/providers/dialog_provider";
 
 const geistSans = Geist({

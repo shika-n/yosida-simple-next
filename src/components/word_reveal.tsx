@@ -56,10 +56,13 @@ export default function WordReveal({ wordId }: { wordId: number }) {
 					);
 				})}
 			</ol>
-			<div className="flex flex-col gap-0">
-				<span>勝利数: {successAttempts}</span>
-				<span>総合数: {totalAttempts}</span>
-				<span>勝利率: {successRatio}%</span>
+			<div className="grid grid-cols-3 gap-x-4 rounded-sm border bg-(--primary-3) px-2 py-1 text-center">
+				<span>勝利数</span>
+				<span>総合数</span>
+				<span>勝利率</span>
+				<span>{successAttempts}</span>
+				<span>{totalAttempts}</span>
+				<span>{successRatio}%</span>
 			</div>
 		</div>
 	);

@@ -49,7 +49,10 @@ export default function ExploreEntry({
 				}
 				setShowDetails((prev) => !prev);
 			}}
-			className={["px-4 py-2 hover:ring-1", className].join(" ")}
+			className={[
+				"px-4 py-2 ring-1 ring-transparent transition-all hover:ring-(--secondary)",
+				className,
+			].join(" ")}
 		>
 			<div className="grid w-full grid-cols-4 gap-4">
 				<span className="border-r-2">{word.kanji}</span>

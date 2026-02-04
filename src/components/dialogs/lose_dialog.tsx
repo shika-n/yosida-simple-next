@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import Button from "../clickables/button";
 import { DialogContext } from "@/lib/providers/dialog_provider";
-import WordReveal from "./word_reveal";
+import WordReveal from "../word_reveal";
 
 export default function LoseDialog({ wordId }: { wordId: number }) {
 	const dialogContext = useContext(DialogContext)!;

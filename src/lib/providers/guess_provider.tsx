@@ -1,6 +1,6 @@
 "use client";
 
-import { BOARD_HEIGHT, BOARD_WIDTH } from "@/components/tile_board";
+import { BOARD_HEIGHT, BOARD_WIDTH } from "@/components/tile_board/tile_board";
 import { createContext, ReactNode, useState } from "react";
 import { Glossary } from "../models/glossary";
 import { ProviderPair } from "./provider";

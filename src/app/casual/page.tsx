@@ -1,4 +1,4 @@
-import TileBoard from "@/components/tile_board";
+import TileBoard from "@/components/tile_board/tile_board";
 
 export default function Random() {
 	return (

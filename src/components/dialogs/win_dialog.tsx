@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import Button from "../clickables/button";
 import { DialogContext } from "@/lib/providers/dialog_provider";
-import WordReveal from "./word_reveal";
-import AttemptHistogram from "./histogram";
+import WordReveal from "../word_reveal";
+import AttemptHistogram from "../attempt_histogram";
 
 export default function WinDialog({ wordId }: { wordId: number }) {
 	const dialogContext = useContext(DialogContext)!;

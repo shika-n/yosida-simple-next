@@ -9,11 +9,11 @@ import {
 	TileStatus,
 } from "@/lib/providers/guess_provider";
 import { kanaMap } from "@/lib/kana_map";
-import Button from "./clickables/button";
+import Button from "../clickables/button";
 import { ProviderPair } from "@/lib/providers/provider";
 import { DialogContext, DialogData } from "@/lib/providers/dialog_provider";
-import LoseDialog from "./dialogs/lose_dialog";
-import WinDialog from "./dialogs/win_dialog";
+import LoseDialog from "../dialogs/lose_dialog";
+import WinDialog from "../dialogs/win_dialog";
 
 export const BOARD_WIDTH = 5;
 export const BOARD_HEIGHT = 8;

@@ -32,11 +32,11 @@ export default function AttemptHistogram({ wordId }: { wordId: number }) {
 	data.forEach((bin) => (highestCount = Math.max(bin.count, highestCount)));
 
 	return (
-		<div className="grid h-20 w-3/5 grid-cols-8 gap-1">
+		<div className="grid h-20 w-3/5 grid-cols-8 gap-0">
 			{data.map((bin: AttemptBins, i) => {
 				return (
 					<div key={wordId + "_" + i} className="flex flex-col">
-						<div className="flex h-full flex-col justify-end">
+						<div className="flex h-full flex-col justify-end border-b-2 px-0.5">
 							<div
 								className="w-full bg-(--accent)"
 								style={{
