@@ -83,7 +83,6 @@ def drop_tables(cur: sql.Cursor):
     cur.execute("DROP TABLE IF EXISTS words")
     cur.execute("DROP TABLE IF EXISTS glossaries")
     cur.execute("DROP TABLE IF EXISTS attempts")
-    cur.execute("DROP TABLE IF EXISTS attempts_nth")
 
 
 def create_tables(cur: sql.Cursor):
