@@ -22,7 +22,16 @@ async function fetchData(
 }
 
 export default function AttemptHistogram({ wordId }: { wordId: number }) {
-	const [data, setData] = useState<AttemptBins[]>([]);
+	const [data, setData] = useState<AttemptBins[]>([
+		{ bin: 1, count: 0 },
+		{ bin: 2, count: 0 },
+		{ bin: 3, count: 0 },
+		{ bin: 4, count: 0 },
+		{ bin: 5, count: 0 },
+		{ bin: 6, count: 0 },
+		{ bin: 7, count: 0 },
+		{ bin: 8, count: 0 },
+	]);
 
 	useEffect(() => {
 		fetchData(setData, wordId);
@@ -38,10 +47,11 @@ export default function AttemptHistogram({ wordId }: { wordId: number }) {
 					<div key={wordId + "_" + i} className="flex flex-col">
 						<div className="flex h-full flex-col justify-end border-b-2 px-0.5">
 							<div
-								className="w-full bg-(--accent)"
+								className="w-full bg-(--accent) transition-all duration-1000"
 								style={{
 									height:
-										(100.0 * bin.count) / highestCount +
+										(100.0 * bin.count) /
+											Math.max(1, highestCount) +
 										"%",
 								}}
 								title={bin.count + "回"}

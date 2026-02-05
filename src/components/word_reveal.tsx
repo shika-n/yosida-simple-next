@@ -60,7 +60,7 @@ export default function WordReveal({ wordId }: { wordId: number }) {
 					);
 				})}
 			</ol>
-			<div className="grid grid-cols-3 gap-x-4 rounded-sm border bg-(--primary-3) px-2 py-1 text-center">
+			<div className="mt-2 grid grid-cols-3 gap-x-4 rounded-sm border bg-(--primary-3) px-2 py-1 text-center">
 				<span>勝利数</span>
 				<span>総合数</span>
 				<span>勝利率</span>
