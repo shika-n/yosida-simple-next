@@ -1,24 +1,24 @@
 import { randomUUID } from "crypto";
-import { getRandomWord, Word } from "./models/words";
+import { getRandomWord, getWordById, Word } from "./models/words";
 
-let currentWord: Word | null;
-let currentUuid: string | null;
+let currentWordId: number = 0;
+let currentUuid: string = "";
 
 export function newWord() {
 	const isCommon = true;
-	currentWord = getRandomWord(isCommon) ?? null;
+	currentWordId = getRandomWord(isCommon)?.id ?? 0;
 	currentUuid = randomUUID();
 }
 
-export function getCurrentWord() {
-	if (!currentWord) {
+export function getCurrentWord(): Word {
+	if (currentWordId <= 0) {
 		newWord();
 	}
-	return currentWord;
+	return getWordById(currentWordId)!;
 }
 
-export function getCurrentUuid() {
-	if (!currentUuid) {
+export function getCurrentUuid(): string {
+	if (currentUuid.trim().length === 0) {
 		newWord();
 	}
 	return currentUuid;

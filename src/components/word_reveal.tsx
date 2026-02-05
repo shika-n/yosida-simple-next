@@ -36,8 +36,12 @@ export default function WordReveal({ wordId }: { wordId: number }) {
 
 	const successAttempts = data?.word.successes ?? 0;
 	const totalAttempts = successAttempts + (data?.word.fails ?? 0);
-	const successRatio =
+	let successRatio =
 		Math.floor((successAttempts * 10000.0) / totalAttempts) / 100.0;
+
+	if (isNaN(successRatio)) {
+		successRatio = 0;
+	}
 
 	return (
 		<div className="flex flex-col items-center gap-1">
