@@ -41,7 +41,7 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 		return [];
 	}
 
-	offset = offset ?? 0;
+	offset = Number(offset) ?? 0;
 	const db = getDatabase();
 
 	if (isAscii(Buffer.from(str))) {
@@ -54,10 +54,12 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 			WHERE meaning LIKE :meaning
 			ORDER BY is_common DESC
 			LIMIT 10
+			OFFSET :offset
 		`,
 			)
 			.all({
 				meaning: "%" + str + "%",
+				offset,
 			});
 	}
 
@@ -76,12 +78,14 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 				OR kanji LIKE :kanji
 			ORDER BY is_common DESC
 			LIMIT 10
+			OFFSET :offset
 		`,
 		)
 		.all({
 			kataReading: "%" + katakana + "%",
 			hiraReading: "%" + str + "%",
 			kanji: "%" + str + "%",
+			offset,
 		});
 }
 

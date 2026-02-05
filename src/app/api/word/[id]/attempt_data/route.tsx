@@ -1,3 +1,4 @@
+import { getCurrentWord } from "@/lib/guess_data";
 import { AttemptBins, getAttemptsData } from "@/lib/models/attempts";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,7 +8,13 @@ export async function GET(
 ) {
 	const { id } = await params;
 
-	const res: AttemptBins[] = getAttemptsData(id);
+	let targetId = Number(id) ?? 0;
+	if (targetId === 0) {
+		targetId = getCurrentWord()?.id ?? 0;
+	}
+
+	let res: AttemptBins[] = getAttemptsData(targetId);
+
 
 	if (!res) {
 		return NextResponse.json(
