@@ -1,7 +1,21 @@
 # YSN - シンプルなWordleの真似
+日本語版の[Wordle](https://www.nytimes.com/games/wordle/index.html)の真似です。
 デイリーとカジュアル（いつでもできる）モードがあります。
+意味・読み方・漢字を検索できます。
 
-勉強用の検索機能もあります。
+
+## スクリーンショット
+### メイン画面
+![カジュアルの画面](screenshots/casual1.png)
+![カジュアルの勝利画面](screenshots/casual_win.png)
+
+### 検索画面
+![検索の画面](screenshots/explore_expanded.png)
+
+## 機能
+- デイリー（リセットされるまで一つの言葉）
+- カジュアル（自由でリセット可能）
+- 言葉検索（英字・ひらがな・カタカナ・感じ）
 
 > [!NOTE]
 > デイリーは追加の設定が必要です。
