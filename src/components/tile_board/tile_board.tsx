@@ -189,9 +189,21 @@ function handleKanaConversion(guessContext: ProviderPair<GuessData>) {
 			// Handle small tsu with double consonant
 			guessContext.setState((prev) => ({
 				...prev,
-				tiles: prev.tiles.map((val, i) =>
-					i === prev.index ? { ...val, text: "っ" } : val,
-				),
+				tiles: prev.tiles.map((val, i) => {
+					if (i === prev.index) {
+						return {
+							...val,
+							text: "っ",
+						};
+					} else if (i === prev.index + 1) {
+						return {
+							...val,
+							text: currentTyping[1],
+						};
+					} else {
+						return val;
+					}
+				}),
 				index: Math.min(prev.offset + BOARD_WIDTH - 1, prev.index + 1),
 				typing: currentTyping[0],
 			}));
