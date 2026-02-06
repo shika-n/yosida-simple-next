@@ -36,12 +36,12 @@ export function getRandomWord(isCommon?: boolean): Word | undefined {
 		.get();
 }
 
-export function getWordsLike(str: string, offset?: number): Word[] | undefined {
+export function getWordsLike(str: string, index?: number): Word[] | undefined {
 	if (str.trim().length === 0) {
 		return [];
 	}
 
-	offset = Number(offset) ?? 0;
+	index = Number(index) ?? 0;
 	const db = getDatabase();
 
 	if (isAscii(Buffer.from(str))) {
@@ -59,7 +59,7 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 			)
 			.all({
 				meaning: "%" + str + "%",
-				offset,
+				offset: index * 10,
 			});
 	}
 
@@ -85,7 +85,7 @@ export function getWordsLike(str: string, offset?: number): Word[] | undefined {
 			kataReading: "%" + katakana + "%",
 			hiraReading: "%" + str + "%",
 			kanji: "%" + str + "%",
-			offset,
+			offset: index * 10,
 		});
 }
 

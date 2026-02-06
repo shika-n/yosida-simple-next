@@ -1,40 +1,76 @@
 "use client";
 
+import Button from "@/components/clickables/button";
 import ExploreEntry from "@/components/explore_entry";
 import { Attempt } from "@/lib/models/attempts";
 import { Word } from "@/lib/models/words";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 async function fetchData(
-	setResult: Dispatch<SetStateAction<Word[]>>,
 	searchValue: string,
+	index: number,
+	setResult: Dispatch<SetStateAction<Word[]>>,
+	setCurrentIndex: Dispatch<SetStateAction<number>>,
+	setIsFetching: Dispatch<SetStateAction<boolean>>,
 ) {
+	if (searchValue.trim().length === 0 || index === -1) {
+		return;
+	}
+	setIsFetching(true);
 	try {
-		const searchParams = new URLSearchParams([["q", searchValue]]);
+		const searchParams = new URLSearchParams([
+			["q", searchValue],
+			["index", index.toString()],
+		]);
 		const res = await fetch(
 			"http://localhost:3000/api/word/search?" + searchParams,
 		);
 		if (res.status !== 200) {
-			setResult([]);
+			setResult((prev) => prev);
+			setCurrentIndex(-1);
+			setIsFetching(false);
 			return;
 		}
 
-		const json = await res.json();
-		setResult(json);
+		const json: Word[] = await res.json();
+		setResult((prev) => {
+			if (index === 0) {
+				return json;
+			}
+			return [...prev, ...json];
+		});
+		setCurrentIndex((prev) => {
+			if (json.length !== 0) {
+				return prev + 1;
+			} else {
+				return -1;
+			}
+		});
+		setIsFetching(false);
 	} catch (e) {
-		setResult([]);
+		setResult((prev) => prev);
+		setCurrentIndex(-1);
+		setIsFetching(false);
 	}
 }
 
 export default function ExplorePage() {
 	const [searchValue, setSearchValue] = useState("");
+	const [currentIndex, setCurrentIndex] = useState(0);
+	const [isFetching, setIsFetching] = useState(false);
 	const [result, setResult] = useState<Word[]>([]);
 
 	useEffect(() => {
-		const timeoutId = setTimeout(
-			() => fetchData(setResult, searchValue),
-			500,
-		);
+		const timeoutId = setTimeout(() => {
+			setCurrentIndex(0);
+			fetchData(
+				searchValue,
+				0,
+				setResult,
+				setCurrentIndex,
+				setIsFetching,
+			);
+		}, 500);
 		return () => clearTimeout(timeoutId);
 	}, [searchValue]);
 
@@ -68,6 +104,25 @@ export default function ExplorePage() {
 						/>
 					);
 				})}
+				{currentIndex !== -1 && result.length !== 0 ? (
+					<Button
+						onClick={() =>
+							fetchData(
+								searchValue,
+								currentIndex,
+								setResult,
+								setCurrentIndex,
+								setIsFetching,
+							)
+						}
+						disabled={isFetching}
+						className="mt-2 self-center"
+					>
+						もっと見る・Load More
+					</Button>
+				) : (
+					<></>
+				)}
 			</div>
 		</>
 	);
