@@ -15,7 +15,6 @@ export async function GET(
 
 	let res: AttemptBins[] = getAttemptsData(targetId);
 
-
 	if (!res) {
 		return NextResponse.json(
 			{ message: "Attempt data not found" },

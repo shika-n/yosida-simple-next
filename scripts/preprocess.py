@@ -83,6 +83,7 @@ def drop_tables(cur: sql.Cursor):
     cur.execute("DROP TABLE IF EXISTS words")
     cur.execute("DROP TABLE IF EXISTS glossaries")
     cur.execute("DROP TABLE IF EXISTS attempts")
+    cur.execute("DROP TABLE IF EXISTS current_data")
 
 
 def create_tables(cur: sql.Cursor):
@@ -108,6 +109,13 @@ def create_tables(cur: sql.Cursor):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             word_id INTEGER NOT NULL REFERENCES words(id),
             success_at_nth INTEGER NOT NULL
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE current_data (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            word_id INTEGER NOT NULL REFERENCES words(id),
+            uuid VARCHAR(40) NOT NULL
         )
     """)
 
