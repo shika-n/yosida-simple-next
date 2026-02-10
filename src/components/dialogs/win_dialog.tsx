@@ -8,7 +8,7 @@ export default function WinDialog({ wordId }: { wordId: number }) {
 	const dialogContext = useContext(DialogContext)!;
 
 	return (
-		<div className="flex w-80 flex-col items-center gap-4">
+		<div className="flex w-full flex-col items-center gap-4">
 			<h2 className="text-3xl font-bold">勝利！</h2>
 			<WordReveal wordId={wordId} />
 			<AttemptHistogram wordId={wordId} />
