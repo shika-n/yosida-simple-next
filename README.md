@@ -22,6 +22,10 @@
 > `src/app/api/word/reset/route.tsx`と`scripts/reset_word.sh`を見てください。
 > Cronなど定期的にタスクを実行できるものは必要。
 
+## 工夫したところ
+- サイトのベース色は一つの変数（`--primary`）でそれ以外の色は`primary`のもとにして
+`from`を使って作りました。
+
 ## 技術
 - Next.js（フルスタック）
 - Sqlite
